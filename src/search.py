@@ -29,14 +29,14 @@ RESPONDA A "PERGUNTA DO USUÁRIO"
 import os
 from dotenv import load_dotenv
 from langchain_postgres.vectorstores import PGVector
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
 
 load_dotenv()
 
 PG_CONN_STRING = os.getenv("PGVECTOR_URL", "postgresql://postgres:postgres@localhost:5432/rag")
 COLLECTION_NAME = os.getenv("PGVECTOR_COLLECTION", "pdf_chunks")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-EMBEDDING_MODEL = os.getenv("OPENAI_MODEL", "text-embedding-3-small")
+EMBEDDING_MODEL = os.getenv("OPENAI_MODEL", "models/embedding-001")
 
 def search_prompt(pergunta=None):
   if not pergunta:
@@ -61,5 +61,8 @@ def search_prompt(pergunta=None):
     return 'Não tenho informações necessárias para responder sua pergunta.'
 
   prompt = PROMPT_TEMPLATE.format(contexto=contexto, pergunta=pergunta)
-  # In a real implementation, LLM call would go here
-  return prompt
+
+  # Chamar a LLM Gemini para gerar a resposta
+  llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash-lite", google_api_key=SecretStr(GOOGLE_API_KEY))
+  resposta = llm.invoke(prompt).content
+  return resposta
